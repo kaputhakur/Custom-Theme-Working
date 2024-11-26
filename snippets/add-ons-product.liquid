@@ -1,0 +1,110 @@
+<style>
+  .add-on-img img {
+    height: 130px;
+    width: 100px;
+    object-fit: contain;
+}
+
+.add-on-inner-card {
+    display: flex;
+    gap: 20px;
+}
+
+.add-on-info h3 {
+    margin: 0 auto;
+    font-size: 14px;
+}
+input#addToCart-add {
+    background: #000;
+    color: #fff;
+    padding: 5px 15px;
+}
+
+.add-ons-products-wrap {
+    background: #f1f1f1;
+    padding: 10px;
+    border-radius: 4px;
+}
+</style>
+
+<div class="add-on-inner-card">
+    <div  class="add-on-img">
+      <a href="{{ product.url }}">
+       <img src="{{ product.featured_image | img_url: '' }}" alt="{{product.featured_image.alt}}" height="" width="" /> 
+      </a>
+ 
+    </div>
+ <div class="add-on-info">   
+        
+     <h3>{{ product.title }}</h3>
+      {% if product.options_with_values.size > 0 %}
+    <span class="variant-option-name">
+        {% for option in product.options_with_values %}
+           {% if option.name == "Colour" %}
+            {% for value in option.values %}
+                <option value="{{ value | escape }}" {% if option.selected_value == value %}selected="selected"{% endif %}>{{ value }}</option>
+            {% endfor %}
+             {% endif %}
+        {% endfor %}
+    </span>
+     {% endif %}
+    <span class="add-ons-price">{{ product.price |  money_with_currency  }}</span>
+<div class="add-ons-cart">
+  <form id="add-to-cart-form" method="post" action="/cart/add">
+    <input type="hidden" name="id" value="{{ product.variants.first.id }}" />
+    <input id="addToCart-add" type="button" value="+ Add" class="add-on-button" onclick="addToCart()" />
+  </form>
+</div>
+</div>
+</div>
+<script>
+// Function to fetch and update cart item count
+function updateCartItemCount() {
+    fetch('/cart.js', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+         document.getElementById("cartItemCount").textContent = data.item_count;
+    })
+    .catch(error => {
+        console.error('Error fetching cart information:', error);
+    });
+}
+
+
+updateCartItemCount();
+
+// Function to add item to cart
+function addToCart() {
+    var form = document.getElementById("add-to-cart-form");
+    var formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            // Update cart item count after adding item
+            updateCartItemCount();
+
+            var cartMessage = document.getElementById("addon-message");
+            cartMessage.style.display = "block";
+            setTimeout(function() {
+                cartMessage.style.display = "none";
+            }, 7000); // 7000 milliseconds = 7 seconds
+        } else {
+            console.error('Failed to add item to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error adding item to cart:', error);
+    });
+}
+</script>
+
+
